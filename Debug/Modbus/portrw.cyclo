@@ -1,0 +1,4 @@
+../Modbus/portrw.c:38:1:eMBRegInputCB	7
+../Modbus/portrw.c:93:1:eMBRegHoldingCB	22
+../Modbus/portrw.c:232:1:eMBRegCoilsCB	1
+../Modbus/portrw.c:246:1:eMBRegDiscreteCB	1

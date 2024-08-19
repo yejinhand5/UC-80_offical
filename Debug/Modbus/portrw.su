@@ -1,0 +1,4 @@
+../Modbus/portrw.c:38:1:eMBRegInputCB	32	static
+../Modbus/portrw.c:93:1:eMBRegHoldingCB	40	static
+../Modbus/portrw.c:232:1:eMBRegCoilsCB	24	static
+../Modbus/portrw.c:246:1:eMBRegDiscreteCB	16	static
