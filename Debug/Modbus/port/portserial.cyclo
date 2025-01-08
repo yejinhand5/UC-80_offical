@@ -1,7 +1,0 @@
-../Modbus/port/portserial.c:34:1:vMBPortSerialEnable	3
-../Modbus/port/portserial.c:62:1:xMBPortSerialInit	1
-../Modbus/port/portserial.c:70:1:xMBPortSerialPutByte	2
-../Modbus/port/portserial.c:87:1:xMBPortSerialGetByte	2
-../Modbus/port/portserial.c:108:13:prvvUARTTxReadyISR	1
-../Modbus/port/portserial.c:118:13:prvvUARTRxISR	1
-../Modbus/port/portserial.c:123:6:USART2_IRQHandlerx	6
