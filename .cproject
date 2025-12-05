@@ -49,12 +49,12 @@
 									<listOptionValue builtIn="false" value="../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32G4xx/Include"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="&quot;D:\UC-80_offical\Modbus&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;D:\UC-80_offical\Modbus\modbus\ascii&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;D:\UC-80_offical\Modbus\modbus\functions&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;D:\UC-80_offical\Modbus\modbus\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;D:\UC-80_offical\Modbus\modbus\rtu&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;D:\UC-80_offical\Modbus\port&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\16197\Downloads\MyProject\LED_pd\LED_PD\Modbus&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\16197\Downloads\MyProject\LED_pd\LED_PD\Modbus\modbus&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\16197\Downloads\MyProject\LED_pd\LED_PD\Modbus\modbus\functions&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\16197\Downloads\MyProject\LED_pd\LED_PD\Modbus\modbus\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\16197\Downloads\MyProject\LED_pd\LED_PD\Modbus\modbus\rtu&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\16197\Downloads\MyProject\LED_pd\LED_PD\Modbus\port&quot;"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.823272012" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>

@@ -70,6 +70,21 @@ typedef struct
   uint16_t usRelay5;
 } CONTROL_RELAY_t;
 
+typedef struct
+{
+		uint32_t	ParaAddr;
+		uint32_t	ParaSize;
+}FLASH_ADDR;
+
+
+typedef struct
+{								/* Register		 Type  		Description  	R/W */
+//	uint16_t Modbus_Address;    // 42000		 not used
+	uint16_t Parity;			// 42000		 0=NONE, 1=ODD, 2=EVEN
+	uint32_t Baudrate;  		// 42001-42002
+}SYS_TypeDef;
+
+
 #pragma pack ()
 
 extern uint32_t systick_1s;
@@ -95,6 +110,8 @@ extern UART_HandleTypeDef huart2;
 extern I2C_HandleTypeDef hi2c2;
 
 extern CONTROL_SETTINGS_t ControlReg;
+
+extern SYS_TypeDef sys;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

@@ -23,14 +23,14 @@
 /* USER CODE BEGIN Includes */
 #include "mb.h"
 #include "mbport.h"
-
+#include "portrw.h"
 #include "DAC5410.h"
 #include "MS1112.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+SYS_TypeDef sys;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -120,7 +120,6 @@ void SystemTickCallBack(void)
 		 eMBPoll();
 		 ModbusPollCount=0;
 	  }
-
 }
 
 
@@ -142,6 +141,154 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 uint8_t RequestAddr=0;
 
+FLASH_ADDR gFlashAddr;
+
+void Flash_Init(void)
+{
+//flash addr------------128K bytes--------------------------------------------
+		//no boot code
+
+		gFlashAddr.ParaSize = 8 * FLASH_PAGE_SIZE;					//8*1024	cct6 256kb
+		gFlashAddr.ParaAddr = FLASH_SIZE - gFlashAddr.ParaSize;		//256 *1024	-16384
+
+}
+
+static uint32_t GetPage(uint32_t Addr)
+{
+	uint32_t page = 0;
+
+	if (Addr < (FLASH_BASE + FLASH_BANK_SIZE))
+	{
+	/* Bank 1 */
+	page = (Addr - FLASH_BASE) / FLASH_PAGE_SIZE;
+	}
+	else
+	{
+	/* Bank 2 */
+	page = (Addr - (FLASH_BASE + FLASH_BANK_SIZE)) / FLASH_PAGE_SIZE;
+	}
+
+	return page;
+}
+
+
+uint32_t FirstPage = 0, NbOfPages = 0, BankNumber = 0;
+uint32_t PAGEError = 0;
+int16_t Flash_Write(uint32_t addr, uint8_t *pData, uint32_t len)
+{
+	static FLASH_EraseInitTypeDef EraseInitStruct;
+	int16_t rc;
+	uint32_t Addr;
+	uint64_t data64;
+	uint32_t count;
+
+	count = 0;
+	rc = 0;
+	Addr = addr;
+
+	HAL_FLASH_Unlock();
+
+	while (count < len)
+	{
+		if (Addr % FLASH_PAGE_SIZE == 0)
+		{
+			/* Clear OPTVERR bit set on virgin samples */
+			__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_OPTVERR);
+			/* Get the 1st page to erase */
+			FirstPage = GetPage(addr);
+			/* Get the number of pages to erase from 1st page */
+			NbOfPages = 1;//GetPage(FLASH_USER_END_ADDR) - FirstPage + 1;
+			/* Get the bank */
+			BankNumber = FLASH_BANK_1;
+
+			/* Fill EraseInit structure*/
+			EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
+			EraseInitStruct.Banks       = BankNumber;
+			EraseInitStruct.Page        = FirstPage;
+			EraseInitStruct.NbPages     = NbOfPages;
+			if (HAL_FLASHEx_Erase(&EraseInitStruct, &PAGEError) != HAL_OK)
+			{
+       		   rc = -1;
+       		   break;
+			}
+		}
+
+		data64 = pData[count + 7];
+		data64 <<= 8;
+		data64 += pData[count + 6];
+		data64 <<= 8;
+		data64 += pData[count + 5];
+		data64 <<= 8;
+		data64 += pData[count + 4];
+		data64 <<= 8;
+		data64 += pData[count + 3];
+		data64 <<= 8;
+		data64 += pData[count + 2];
+		data64 <<= 8;
+		data64 += pData[count + 1];
+		data64 <<= 8;
+		data64 += pData[count];
+
+		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, Addr, data64) != HAL_OK)
+		{
+			rc = -2;
+			break;
+		}
+		count += 8;
+		Addr += 8;
+	}
+	HAL_FLASH_Lock();
+
+	return rc;
+}
+
+int16_t Flash_Read(uint32_t addr, uint8_t *pData, uint32_t len)
+{
+	int rc;
+	uint32_t Addr;
+	uint64_t data64;
+	uint32_t count;
+	int i;
+
+	count = 0;
+	rc = 0;
+	Addr = addr;
+
+	while (count < len)
+	{
+		data64 = *(__IO uint64_t *)Addr;
+		for (i = 0; i < 8 && count + i < len; i++)
+			pData[count + i] = (data64 >> (i * 8));
+		count += 8;
+		Addr += 8;
+	}
+
+	return rc;
+}
+
+int16_t Flash_SaveSysConfig(SYS_TypeDef *sys)
+{
+    return Flash_Write(gFlashAddr.ParaAddr, (uint8_t *)sys, sizeof(SYS_TypeDef));
+}
+
+
+int16_t Flash_LoadSysConfig(SYS_TypeDef *sys)
+{
+    int rc = 0;
+    rc = Flash_Read(gFlashAddr.ParaAddr, (uint8_t *)sys, sizeof(SYS_TypeDef));
+
+    if (sys->Baudrate < 1200 || sys->Baudrate > 115200)
+    {
+    	return rc = -1;
+    }
+    if ( sys->Parity > MB_PAR_EVEN)
+	{
+		return rc = -2;
+	}
+    return rc;
+}
+
+
 
 /* USER CODE END 0 */
 
@@ -161,7 +308,13 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  Flash_Init();
+  if((Flash_LoadSysConfig(&sys))!= HAL_OK)
+  {
+	  sys.Baudrate = 9600;
+	  sys.Parity = MB_PAR_EVEN;
+	  Flash_SaveSysConfig(&sys);
+  };
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -191,7 +344,7 @@ int main(void)
   AD5410_init();
   AD5410_IOUTx100(Ma2Ai2AoReg.AO2,Ma2Ai2AoReg.AO1);
 
-  eMBInit(MB_RTU,FLOW_SLAVE_ADDR,0,9600, MB_PAR_EVEN);
+  eMBInit(MB_RTU,FLOW_SLAVE_ADDR,0, sys.Baudrate, sys.Parity);
   eMBEnable();
 
 
@@ -227,6 +380,11 @@ int main(void)
 		  level = 0;
 	  }
 	  PulseReg.usLevel_status = level;
+	  if(MODBUS_isRegWrite)
+	  {
+		  MODBUS_isRegWrite = 0;
+		  Flash_SaveSysConfig(&sys);
+	  }
 	  HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END 3 */
@@ -473,10 +631,29 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 9600;
-  huart2.Init.WordLength = UART_WORDLENGTH_9B;
+//  huart2.Init.BaudRate = 9600;
+  huart2.Init.BaudRate = sys.Baudrate;
+//  huart2.Init.WordLength = UART_WORDLENGTH_9B;
   huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_EVEN;
+//  huart2.Init.Parity = UART_PARITY_EVEN;
+  switch(sys.Parity) {
+  case MB_PAR_NONE:
+      huart2.Init.Parity   = UART_PARITY_NONE;
+      huart2.Init.WordLength = UART_WORDLENGTH_8B;
+      break;
+  case MB_PAR_ODD:
+      huart2.Init.Parity   = UART_PARITY_ODD;
+      huart2.Init.WordLength = UART_WORDLENGTH_9B; // 带奇偶通常 9bit
+      break;
+  case MB_PAR_EVEN:
+      huart2.Init.Parity   = UART_PARITY_EVEN;
+      huart2.Init.WordLength = UART_WORDLENGTH_9B;
+      break;
+  default:
+	  huart2.Init.Parity   = UART_PARITY_EVEN;
+	  huart2.Init.WordLength = UART_WORDLENGTH_9B;
+}
+//  huart2.Init.Parity = UART_PARITY_EVEN;
   huart2.Init.Mode = UART_MODE_TX_RX;
   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart2.Init.OverSampling = UART_OVERSAMPLING_16;

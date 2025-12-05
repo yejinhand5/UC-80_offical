@@ -26,6 +26,7 @@
 #include "main.h"
 /* ----------------------- private variables ----------------------------------*/
 extern uint8_t RequestAddr;
+uint8_t MODBUS_isRegWrite = 0;
 /* ----------------------- Start implementation -----------------------------*/
 /**
   * @brief  读输入寄存器
@@ -40,7 +41,26 @@ eMBRegInputCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNRegs)
 	    uint16_t iRegIndex=usAddress-1;
 		uint16_t *data_pointer;
 		eMBErrorCode eStatus = MB_ENOERR;
-		if (RequestAddr == AIAO_SLAVE_ADDR)
+		if(RequestAddr == FLOW_SLAVE_ADDR)
+		{
+			if(42001 <= usAddress&&usAddress <=42003)
+			{
+				if( usAddress + usNRegs <=  42004)
+				{
+					iRegIndex = usAddress-42000-1;
+					data_pointer = (void *)&(sys.Parity);
+				}
+				else
+				{
+					eStatus=MB_ENOREG;
+				}
+			}
+			else
+			{
+				eStatus=MB_ENOREG;
+			}
+		}
+		else if (RequestAddr == AIAO_SLAVE_ADDR)
 		{
 			if(1<=usAddress&&usAddress<=2)
 			{
@@ -58,6 +78,7 @@ eMBRegInputCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNRegs)
 				eStatus=MB_ENOREG;
 			}
 		}
+
 		else
 		{
 		     eStatus=MB_ENOREG;
@@ -109,6 +130,18 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 				eStatus=MB_ENOREG;
 			}
 		}
+		else if (42001 <=usAddress&& usAddress <=42003)
+		{
+			if(usAddress + usNRegs <= 42004)
+			{
+				iRegIndex = usAddress-42000-1;
+				data_pointer =  (void *)&(sys.Parity);
+			}
+			else
+			{
+				eStatus=MB_ENOREG;
+			}
+		}
 		else
 		{
 			eStatus=MB_ENOREG;
@@ -145,7 +178,7 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 			}
 			else
 			{
-			eStatus=MB_ENOREG;
+				eStatus=MB_ENOREG;
 			}
 		}
 		else
@@ -212,7 +245,10 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 				iRegIndex++;
 				usNRegs--;
 			}
-
+			if(42001<=usAddress&&usAddress<= 42003)
+			{
+				MODBUS_isRegWrite = 1;
+			}
 			break;
 
 		default:
