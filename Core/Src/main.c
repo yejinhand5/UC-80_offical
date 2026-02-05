@@ -346,8 +346,6 @@ int main(void)
 
   eMBInit(MB_RTU,FLOW_SLAVE_ADDR,0, sys.Baudrate, sys.Parity);
   eMBEnable();
-
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -357,7 +355,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
 	  /* Power_switch*/
 	  OUTV1(control_settings.usOutV1 == 0 ? 0 : 1);
 	  OUTV2(control_settings.usOutV2 == 0 ? 0 : 1);

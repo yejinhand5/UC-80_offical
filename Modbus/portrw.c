@@ -99,6 +99,7 @@ eMBRegInputCB(UCHAR *pucRegBuffer, USHORT usAddress, USHORT usNRegs)
 
 			usNRegs--;
 		}
+		return eStatus;
 }
 
 
@@ -117,6 +118,7 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 	uint16_t iRegIndex = usAddress - 1;
 	uint16_t *data_pointer;
 	eMBErrorCode eStatus = MB_ENOERR;
+
 	if(RequestAddr == FLOW_SLAVE_ADDR)
 	{
 		if(1<=usAddress&&usAddress<=2)
@@ -153,6 +155,7 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 		if(1<=usAddress&&usAddress<=2)
 		{
 			if(usAddress + usNRegs <= 3)
+
 			{
 				data_pointer= (void *)&(Ma2Ai2AoReg.AO1);
 			}
@@ -210,6 +213,7 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 	{
 		eStatus=MB_ENOREG;
 	}
+
 	if(eStatus==MB_ENOREG)
 	{
 		return eStatus;
@@ -220,6 +224,7 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 	{
 		//读保持寄存器
 		case MB_REG_READ:
+
 			while( usNRegs > 0 )
 			{
 
@@ -237,6 +242,7 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 
 		//写保持寄存器
 		case MB_REG_WRITE:
+
 			while( usNRegs > 0 )
 			{
 				*(data_pointer + iRegIndex) = *pucRegBuffer++ << 8;
@@ -245,6 +251,7 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 				iRegIndex++;
 				usNRegs--;
 			}
+
 			if(42001<=usAddress&&usAddress<= 42003)
 			{
 				MODBUS_isRegWrite = 1;
@@ -254,6 +261,7 @@ eMBRegHoldingCB(UCHAR *pucRegBuffer, USHORT usAddress,
 		default:
 			break;
 	}
+	return eStatus;
 }
 
 /**
